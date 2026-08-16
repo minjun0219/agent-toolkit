@@ -1,5 +1,32 @@
 # @minjun0219/rocky
 
+## 0.22.0
+
+### Minor Changes
+
+- [#126](https://github.com/minjun0219/rocky/pull/126) [`242ba12`](https://github.com/minjun0219/rocky/commit/242ba1220c613d1047aec547014747ba282d7322) Thanks [@minjun0219](https://github.com/minjun0219)! - 번들 스킬 `todoist` 를 제거한다
+
+  rocky 가 다루는 작업 목록은 rocky-todo 보드 하나이고 기록은 `worklog_*` 다. 외부 태스크
+  서비스 연동은 이 플러그인의 표면에 두지 않는다 — 자격증명을 싣지 않고 세션에 연결된 MCP 만
+  빌려 쓰는 스킬이어도 마찬가지다.
+
+  - `skills/todoist/` 삭제. 스킬 자체는 오너의 `harness` 레포로 이관했다.
+  - `README.md` · `docs/hosts.md` · `.claude-plugin/plugin.json`(description + keywords) 동기화.
+  - `AGENTS.md` 의 _Scope → Out_ 에 "외부 태스크 서비스 연동 금지" 항목 추가.
+
+  되살릴 일이 있으면 git 히스토리에서 꺼낼 수 있다.
+
+- [#124](https://github.com/minjun0219/rocky/pull/124) [`c4ef827`](https://github.com/minjun0219/rocky/commit/c4ef827b69f8209a15e57838d35a3af2937b3e23) Thanks [@minjun0219](https://github.com/minjun0219)! - reviewer 서브에이전트를 추가한다
+
+  `/rocky:review` 안에 인라인으로 있던 리뷰어 역할(읽기 전용 규율·심각도 기준·출력 형식)을
+  `agents/reviewer.md` 로 추출했다. 커맨드는 이 작업에만 해당하는 정보(요약·요구사항·범위)만
+  넘기는 얇은 dispatcher 가 되고, 같은 역할을 다른 진입점에서도 쓸 수 있다 — "리뷰해줘" 로
+  직접 호출하는 경로 포함.
+
+  추출하면서 규율 두 가지를 명문화했다: **검증 후 단언**(돌려본 것만 통과라고 쓰고 안 돌렸으면
+  미검증이라고 적는다)과 **false pass 함정 체크리스트**(출력을 잘라 읽어 에러 요약을 놓치는 것,
+  비교 명령이 조용히 빈 결과를 내는 것, 회귀 테스트의 negative control 부재 등).
+
 ## 0.21.0
 
 ### Minor Changes
