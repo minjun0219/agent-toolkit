@@ -44,7 +44,7 @@
 
 > **작업 목록은 rocky-todo 하나다.** rocky 는 외부 태스크 서비스와 연동하지 않는다 —
 > 작업 목록은 [rocky-todo](https://github.com/minjun0219/rocky-todo) 보드, 작업 기록은
-> `worklog_*` 다. `todoist` 번들 스킬은 v0.22 에서 제거했다.
+> `worklog_*` 다. 전에 번들로 있던 `todoist` 스킬은 제거했다.
 
 > **v0.19 에서 걷어낸 것** — 소울(페르소나) 주입과 `SessionStart` 훅, statusline 템플릿 3종과 동기화 훅, opencode 위임 런타임, `/rocky:codex` · `/rocky:issue` · `/rocky:opencode` · `/rocky:opencode-jobs` 커맨드. 재미로 넣었거나 실사용이 없던 것들이라 정리했다 — 전부 git 히스토리에서 꺼낼 수 있다. `rocky.json` 의 `soul` / `callsign` / `opencode` 키도 함께 사라져 이제 거부되니, 예전 설정 파일에 남아 있으면 지워야 한다.
 
