@@ -49,7 +49,7 @@ rocky/                          single package — @minjun0219/rocky
 ├── commands/                   ★ slash commands — brainstorm, review, finish, resolve-reviews, recall
 ├── hooks/hooks.json            ★ Stop (log-turn) — the only hook. Nothing runs at SessionStart,
 │                                 so the plugin adds nothing to session context.
-├── skills/                     ★ bundled skills — writing-cc-plugin, todoist
+├── skills/                     ★ bundled skills — writing-cc-plugin
 ├── bin/openapi-mcp             bun shebang, arg parsing → src/standalone
 ├── docs/                       architecture, openapi-mcp, codex, opencode, hosts, backlog
 │   └── design/{specs,plans}/   설계·계획 산출물 (구 docs/superpowers/) — 과거분은 그대로 보존
@@ -98,6 +98,11 @@ and the Claude Code-only surfaces. Surface details are in `README.md`; rationale
   `openai/codex-plugin-cc` plugin.
 - Anything rocky-todo (daemon / web UI / CLI / hooks / tools) — separate repo `minjun0219/rocky-todo`.
   `rocky.json` still **tolerates** a `todo` block because the file is shared; rocky just ignores it.
+- **Any external task-service integration** (Todoist, Linear, Jira, …) — the `todoist` bundled skill
+  was removed and moved to the owner's `harness` repo. The owner's task list is the
+  rocky-todo board and the record is `worklog_*`; rocky ships nothing else. This holds even for a
+  skill that only borrows a connected MCP and ships no credentials — the point is that rocky's public
+  surface names one task system. Do not name such a service in docs, manifest keywords, or PR titles.
 - Exposing worklog digests as MCP tools (`wiki_*`), worklog in the standalone CLI, auto-promotion into
   native memory, polling-based auto-digest. Record = `worklog_*` + the `Stop` hook; organize =
   `/rocky:recall` only.
