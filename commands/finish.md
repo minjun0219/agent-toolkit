@@ -91,12 +91,18 @@ gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제
      본문에 코드 조각을 펼쳐 줘서 링크를 누르지 않고도 읽힌다. 없으면 `없음` 이라고 쓴다 —
      억지로 만들지 않는다.
 
-     ```
-     https://github.com/<owner>/<repo>/blob/<sha>/<경로>#L<시작>-L<끝>
+     링크는 손으로 조립하지 말고 스크립트에 포인터를 넘긴다 — 인자는 `경로:심볼`,
+     `경로:42`, `경로:42-58` 셋 다 받고, 줄마다 URL 을 한 줄씩 출력한다.
+
+     ```bash
+     bun "${CLAUDE_PLUGIN_ROOT:-.}/scripts/permalink.ts" \
+       src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18
      ```
 
-     `<sha>` 는 `git rev-parse HEAD` 로 고정한다. 브랜치명으로 걸면 머지 후 브랜치가 지워질
-     때 깨지고, 후속 커밋이 붙으면 가리키는 줄이 밀린다.
+     현재 `HEAD` 의 SHA 로 고정해 준다 (브랜치명으로 걸면 머지 후 브랜치가 지워질 때 깨지고,
+     후속 커밋이 붙으면 가리키는 줄이 밀린다). 심볼 후보가 여럿이면 링크를 임의로 고르지
+     않고 후보 목록과 함께 실패하므로, 그때는 줄 번호를 직접 넘긴다. **본문을 쓰기 직전,
+     푸시한 커밋에서 실행한다** — 아직 원격에 없는 커밋이면 경고가 뜬다.
 
      **인라인 리뷰 코멘트로 대신하지 않는다.** 그건 리뷰 스레드를 만들고, 열린 스레드는
      `required_review_thread_resolution` 이 걸린 레포에서 머지를 막는다 — 읽으라고 찍은 것이
