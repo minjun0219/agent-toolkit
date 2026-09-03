@@ -85,19 +85,32 @@ gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제
 
   1. **무엇을·왜** — 1~2줄.
   2. **리뷰 포인트** — 리뷰어가 실제로 읽어야 할 1~3곳. 항목마다 **`###` 제목 → 설명 →
-     permalink** 순으로 쓴다.
+     (코드 스니펫) → permalink** 순으로 쓴다. 스니펫은 선택이다.
 
-     ```markdown
+     ````markdown
      ## 리뷰 포인트
 
      ### 스레드를 닫는 주체를 사용자로 되돌림
      gh 가 오너 토큰을 쓰므로 에이전트가 닫든 오너가 닫든 밖에서는 구분되지 않는다.
      나누는 방법이 "안 하기로 정해 두는 것"뿐이라 resolve 를 사용자 행위로 돌렸다.
      https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L25
+
+     ### 리액션 대상이 스레드가 아니라 첫 코멘트
+     여기가 틀리면 👀 가 통째로 실패해서, 1단계 GraphQL 에 comments.id 를 추가했다.
+
+     ```graphql
+     addReaction(input:{subjectId:$commentId, content:EYES}){ reaction{ content } }
      ```
+
+     https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L146
+     ````
 
      - **제목**: 그 자리에서 무엇이 바뀌었는지 한 줄. 목록만 훑어도 변경의 지형이 잡혀야 한다.
      - **설명**: 무엇이 걸리는지(위험한 이유 · 갈린 판단 · 확신 없는 부분) 한두 줄.
+     - **코드 스니펫**(선택): 설명과 링크 사이에 짧은 코드 블록을 넣는다. **항상은 아니다** —
+       permalink 만으로 안 되는 때에만 쓴다: 떨어져 있는 줄을 나란히 보여야 할 때, before /
+       after 를 대비시킬 때, 본문에서 대안 코드를 제안할 때. 10줄 안쪽으로 자르고, 그냥
+       읽으라고 붙이는 덤프는 만들지 않는다.
      - **permalink**: 코드를 직접 봐야 이해되는 건에만 붙인다. GitHub 이 본문에 코드 조각을
        펼쳐 줘서 링크를 누르지 않고도 읽힌다. 설명으로 충분하면 생략한다.
 
