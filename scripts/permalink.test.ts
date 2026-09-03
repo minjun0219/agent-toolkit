@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import {
+  buildDiffLink,
   buildPermalink,
   formatPointerLabel,
   parsePointer,
@@ -123,5 +124,38 @@ describe('formatPointerLabel', () => {
 
   it('줄이 없으면 경로만', () => {
     expect(formatPointerLabel('README.md')).toBe('README.md');
+  });
+});
+
+describe('buildDiffLink', () => {
+  // 파일 앵커가 경로의 sha256 이라는 것은 실제 PR 의 Files changed HTML 로 확인한 값이다.
+  const HASH = '995b6c9a3716d1dfef4d9280b643653283cbf19bedc7a2683872c79741e871a6';
+
+  it('경로의 sha256 을 파일 앵커로 쓴다', () => {
+    expect(buildDiffLink({ slug: SLUG, prNumber: 127, path: 'commands/resolve-reviews.md' })).toBe(
+      `https://github.com/minjun0219/rocky/pull/127/files#diff-${HASH}`,
+    );
+  });
+
+  it('줄은 오른쪽(변경 후) 앵커 R 로 붙는다', () => {
+    expect(
+      buildDiffLink({
+        slug: SLUG,
+        prNumber: 127,
+        path: 'commands/resolve-reviews.md',
+        line: { start: 25, end: 25 },
+      }),
+    ).toBe(`https://github.com/minjun0219/rocky/pull/127/files#diff-${HASH}R25`);
+  });
+
+  it('범위는 R시작-R끝', () => {
+    expect(
+      buildDiffLink({
+        slug: SLUG,
+        prNumber: 127,
+        path: 'commands/resolve-reviews.md',
+        line: { start: 25, end: 32 },
+      }),
+    ).toBe(`https://github.com/minjun0219/rocky/pull/127/files#diff-${HASH}R25-R32`);
   });
 });

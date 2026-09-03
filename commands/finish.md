@@ -75,8 +75,17 @@ git push -u origin <현재 브랜치>
 
 ### 6. PR 생성
 
+**PR 을 만든 뒤에 본문을 완성한다.** Files changed 링크에는 PR 번호가 필요해서, 생성 시점에는
+아직 링크를 만들 수 없다. 그래서 두 번에 나눠 돈다.
+
 ```bash
-gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제목>" --body "<본문>"
+# 1) 링크 없는 본문으로 생성 → 번호 확보
+NUM=$(gh pr create --base main --head <브랜치> \
+  --title "<Conventional 한국어 제목>" --body "<본문 초안>" | grep -o '[0-9]*$')
+
+# 2) 그 번호로 링크를 만들어 본문을 갱신
+bun "${CLAUDE_PLUGIN_ROOT:-.}/scripts/permalink.ts" --pr "$NUM" <포인터> ...
+gh pr edit "$NUM" --body "<링크까지 채운 본문>"
 ```
 
 - 제목: Conventional Commits 스타일 한국어. 나열·부연으로 늘리지 않는다 — 세부는 본문으로
@@ -112,19 +121,22 @@ gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제
        링크만으로 안 되는 때에만 쓴다: 떨어져 있는 줄을 나란히 보여야 할 때, before / after 를
        대비시킬 때, 본문에서 대안 코드를 제안할 때. 10줄 안쪽으로 자르고, 그냥 읽으라고 붙이는
        덤프는 만들지 않는다.
-     - **링크**: `[경로:줄](permalink)` 형태로, 보이는 것은 경로와 줄뿐이고 URL 은 뒤에 숨긴다.
-       날 URL 을 그대로 두면 GitHub 이 코드 조각을 펼쳐 주지만 본문이 URL 로 뒤덮여 제목과
-       설명이 묻힌다 — 코드를 꼭 보여야 하면 링크가 아니라 위의 스니펫으로 해결한다.
+     - **링크**: `[경로:줄](URL)` 형태로, 보이는 것은 경로와 줄뿐이고 URL 은 뒤에 숨긴다.
+       URL 은 **그 PR 의 Files changed 위치**(`…/pull/<번호>/files#diff-<해시>R<줄>`)로 건다 —
+       리뷰어가 누르면 어차피 보던 리뷰 화면에서 그 줄로 간다. blob permalink 로 걸면 PR 밖
+       파일 뷰로 튕겨 나가 다시 돌아와야 한다. 이 파일이 diff 에 없으면(이 PR 이 건드리지 않은
+       코드를 가리킬 때) 그때만 blob permalink 로 건다.
 
      **포인터를 앞세우지 않는다.** 경로가 먼저 오면 읽는 사람 눈에는 경로부터 들어와 정작
      무엇이 바뀌었는지가 묻힌다. 제목이 먼저고 링크는 맨 아래다.
 
      링크는 손으로 조립하지 말고 스크립트에 포인터를 넘긴다 — 인자는 `경로:심볼`,
-     `경로:42`, `경로:42-58` 셋 다 받고, 포인터마다 `[경로:줄](permalink)` 를 한 줄씩 출력한다
+     `경로:42`, `경로:42-58` 셋 다 받고, 포인터마다 `[경로:줄](URL)` 를 한 줄씩 출력한다
      (`--url` 이면 날 URL).
 
      ```bash
-     bun "${CLAUDE_PLUGIN_ROOT:-.}/scripts/permalink.ts" \
+     # PR 번호를 주면 Files changed 위치로, 안 주면 blob permalink 로 건다
+     bun "${CLAUDE_PLUGIN_ROOT:-.}/scripts/permalink.ts" --pr 127 \
        src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18
      ```
 

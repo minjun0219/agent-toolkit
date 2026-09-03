@@ -6,7 +6,10 @@
  * 틀리거나 브랜치명으로 걸어(머지 후 깨진다) 조용히 죽은 링크가 남는다.
  *
  * ```
- * bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18
+ * bun scripts/permalink.ts --pr 127 commands/finish.md:12-18
+ * # → [commands/finish.md:12-18](https://github.com/…/pull/127/files#diff-<해시>R12-R18)
+ *
+ * bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch
  * # → [src/core/handlers.ts:118](https://github.com/…/blob/<sha>/src/core/handlers.ts#L118)
  * ```
  */
@@ -124,6 +127,30 @@ export function formatPointerLabel(path: string, line?: { start: number; end: nu
   return line.end > line.start ? `${path}:${line.start}-${line.end}` : `${path}:${line.start}`;
 }
 
+/**
+ * PR 의 Files changed 안 해당 위치로 가는 URL 을 만든다.
+ *
+ * 앵커는 `#diff-<sha256(저장소 루트 기준 경로)>` + 오른쪽(변경 후) 줄 `R<n>` 이다. 파일 앵커가
+ * 경로의 sha256 이라는 것은 실제 PR 의 Files changed HTML 로 확인했다.
+ *
+ * blob permalink 와 달리 **PR 번호가 필요하므로 PR 을 만든 뒤에야 링크를 만들 수 있다** —
+ * `/rocky:finish` 는 PR 생성 → 번호 확보 → 본문 갱신 순으로 돈다.
+ */
+export function buildDiffLink(input: {
+  slug: RepoSlug;
+  prNumber: number;
+  path: string;
+  line?: { start: number; end: number };
+}): string {
+  const { slug, prNumber, path, line } = input;
+  const fileHash = new Bun.CryptoHasher('sha256').update(path).digest('hex');
+  const base = `https://github.com/${slug.owner}/${slug.repo}/pull/${prNumber}/files#diff-${fileHash}`;
+  if (!line) {
+    return base;
+  }
+  return line.end > line.start ? `${base}R${line.start}-R${line.end}` : `${base}R${line.start}`;
+}
+
 /** `https://github.com/<owner>/<repo>/blob/<sha>/<path>#L<start>-L<end>` 를 만든다. */
 export function buildPermalink(input: {
   slug: RepoSlug;
@@ -152,11 +179,19 @@ function git(args: string[]): string {
 
 async function main(argv: string[]): Promise<number> {
   const urlOnly = argv.includes('--url');
-  const pointers = argv.filter((arg) => arg !== '--url');
+  const prIndex = argv.indexOf('--pr');
+  const prNumber = prIndex === -1 ? undefined : Number(argv[prIndex + 1]);
+  if (prIndex !== -1 && (!prNumber || !Number.isInteger(prNumber))) {
+    console.error(`--pr 에 PR 번호가 필요하다 — 받은 값=${argv[prIndex + 1] ?? '(없음)'}`);
+    return 2;
+  }
+  const skip = prIndex === -1 ? new Set<number>() : new Set([prIndex, prIndex + 1]);
+  const pointers = argv.filter((arg, i) => arg !== '--url' && !skip.has(i));
   if (pointers.length === 0) {
     console.error(
-      '사용법: bun scripts/permalink.ts [--url] <경로[:심볼|:줄|:시작-끝]> ...\n' +
-        '예: bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18\n' +
+      '사용법: bun scripts/permalink.ts [--pr <번호>] [--url] <경로[:심볼|:줄|:시작-끝]> ...\n' +
+        '예: bun scripts/permalink.ts --pr 127 commands/finish.md:12-18\n' +
+        '--pr 이면 그 PR 의 Files changed 위치로, 없으면 blob permalink 로 건다.\n' +
         '기본 출력은 `[경로:줄](URL)` 마크다운 링크. --url 이면 날 URL 만 출력한다.',
     );
     return 2;
@@ -187,7 +222,9 @@ async function main(argv: string[]): Promise<number> {
         const found = resolveSymbolLine(await file.text(), pointer.symbol, pointer.path);
         line = { start: found, end: found };
       }
-      const url = buildPermalink({ slug, sha, path: pointer.path, line });
+      const url = prNumber
+        ? buildDiffLink({ slug, prNumber, path: pointer.path, line })
+        : buildPermalink({ slug, sha, path: pointer.path, line });
       // 기본은 마크다운 링크 — PR 본문에 그대로 붙여 쓰는 형태다. 날 URL 이 필요하면 --url.
       console.log(urlOnly ? url : `[${formatPointerLabel(pointer.path, line)}](${url})`);
     } catch (error) {
