@@ -36,7 +36,7 @@
 
 아래는 Claude Code plugin 으로 설치했을 때만 붙는다 (MCP tool 표면과 별개):
 
-- **슬래시 커맨드** (`commands/`) — `/rocky:brainstorm` (아이디어를 설계로 — 맥락 파악 → 한 번에 하나씩 질문 → 접근안 2~3개 → 설계; **게이트가 아니라 도구**), `/rocky:review` (완료 선언 전 신선한 컨텍스트 서브에이전트로 현재 작업 diff 셀프 리뷰 — PR 스레드 대응인 `/rocky:resolve-reviews` 과 별개), `/rocky:finish` (게이트 → 커밋 → 푸시 → PR 생성), `/rocky:resolve-reviews` (PR 에 붙은 리뷰를 해소 — 판단이 필요 없는 명백한 오류는 즉시 고치고 코멘트 없이 resolve, 호출자가 확인해야 하는 건은 열어 둔 채 보고. GitHub 코멘트는 승인할 때만. 머지 가능 시 알림, 머지는 하지 않는다. 재리뷰를 기다리지 않는다), `/rocky:recall` (워크로그를 앵커 히스토리 다이제스트 `kind:"digest"` 로 증분 정리 — 기록의 짝인 **정리(整理)** 레이어). CI 실패 자동 수정은 Claude Code 빌트인 `/autofix-pr` 이 별도 선택지.
+- **슬래시 커맨드** (`commands/`) — `/rocky:brainstorm` (아이디어를 설계로 — 맥락 파악 → 한 번에 하나씩 질문 → 접근안 2~3개 → 설계; **게이트가 아니라 도구**), `/rocky:review` (완료 선언 전 신선한 컨텍스트 서브에이전트로 현재 작업 diff 셀프 리뷰 — PR 스레드 대응인 `/rocky:resolve-reviews` 과 별개), `/rocky:finish` (게이트 → 커밋 → 푸시 → PR 생성), `/rocky:resolve-reviews` (PR 에 붙은 리뷰를 해소 — 판단이 필요 없는 명백한 오류는 즉시 고치고, 스레드에는 👀 리액션만 남긴 채 전부 열어 둔 뒤 채팅으로 보고. GitHub 코멘트와 resolve 는 사용자가 지시할 때만. 머지 가능 시 알림, 머지는 하지 않는다. 재리뷰를 기다리지 않는다), `/rocky:recall` (워크로그를 앵커 히스토리 다이제스트 `kind:"digest"` 로 증분 정리 — 기록의 짝인 **정리(整理)** 레이어). CI 실패 자동 수정은 Claude Code 빌트인 `/autofix-pr` 이 별도 선택지.
 - **훅** (`hooks/hooks.json`) — `Stop` 하나뿐이다. 매 턴 종료 시 `kind:"turn"` 워크로그를 자동 기록한다 (결정론적, LLM 미사용; `worklog.autoCapture` 로 토글). fail-open — 실패해도 세션을 막지 않는다. **세션 컨텍스트에 얹히는 것은 아무것도 없다.**
 - **스킬** (`skills/`) — `writing-cc-plugin`: Claude Code 플러그인 작성 가이드 + 매니페스트·컴포넌트·배포 레퍼런스.
 
