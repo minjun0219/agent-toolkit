@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import { buildPermalink, parsePointer, parseRepoSlug, resolveSymbolLine } from './permalink';
+import {
+  buildPermalink,
+  formatPointerLabel,
+  parsePointer,
+  parseRepoSlug,
+  resolveSymbolLine,
+} from './permalink';
 
 const SLUG = { owner: 'minjun0219', repo: 'rocky' };
 const SHA = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678';
@@ -103,5 +109,19 @@ describe('buildPermalink', () => {
     expect(buildPermalink({ slug: SLUG, sha: SHA, path: 'docs/design/a b.md' })).toBe(
       `https://github.com/minjun0219/rocky/blob/${SHA}/docs/design/a%20b.md`,
     );
+  });
+});
+
+describe('formatPointerLabel', () => {
+  it('단일 줄은 경로:줄', () => {
+    expect(formatPointerLabel('src/index.ts', { start: 42, end: 42 })).toBe('src/index.ts:42');
+  });
+
+  it('범위는 경로:시작-끝', () => {
+    expect(formatPointerLabel('src/index.ts', { start: 42, end: 58 })).toBe('src/index.ts:42-58');
+  });
+
+  it('줄이 없으면 경로만', () => {
+    expect(formatPointerLabel('README.md')).toBe('README.md');
   });
 });

@@ -7,6 +7,7 @@
  *
  * ```
  * bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18
+ * # → [src/core/handlers.ts:118](https://github.com/…/blob/<sha>/src/core/handlers.ts#L118)
  * ```
  */
 
@@ -115,6 +116,14 @@ export function resolveSymbolLine(content: string, symbol: string, path = ''): n
   );
 }
 
+/** 링크 텍스트로 쓸 `경로:줄` 라벨. 줄이 없으면 경로만. */
+export function formatPointerLabel(path: string, line?: { start: number; end: number }): string {
+  if (!line) {
+    return path;
+  }
+  return line.end > line.start ? `${path}:${line.start}-${line.end}` : `${path}:${line.start}`;
+}
+
 /** `https://github.com/<owner>/<repo>/blob/<sha>/<path>#L<start>-L<end>` 를 만든다. */
 export function buildPermalink(input: {
   slug: RepoSlug;
@@ -142,10 +151,13 @@ function git(args: string[]): string {
 }
 
 async function main(argv: string[]): Promise<number> {
-  if (argv.length === 0) {
+  const urlOnly = argv.includes('--url');
+  const pointers = argv.filter((arg) => arg !== '--url');
+  if (pointers.length === 0) {
     console.error(
-      '사용법: bun scripts/permalink.ts <경로[:심볼|:줄|:시작-끝]> ...\n' +
-        '예: bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18',
+      '사용법: bun scripts/permalink.ts [--url] <경로[:심볼|:줄|:시작-끝]> ...\n' +
+        '예: bun scripts/permalink.ts src/core/handlers.ts:handleOpenapiSearch commands/finish.md:12-18\n' +
+        '기본 출력은 `[경로:줄](URL)` 마크다운 링크. --url 이면 날 URL 만 출력한다.',
     );
     return 2;
   }
@@ -163,7 +175,7 @@ async function main(argv: string[]): Promise<number> {
   }
 
   let failed = false;
-  for (const raw of argv) {
+  for (const raw of pointers) {
     try {
       const pointer = parsePointer(raw);
       let line = pointer.line;
@@ -175,7 +187,9 @@ async function main(argv: string[]): Promise<number> {
         const found = resolveSymbolLine(await file.text(), pointer.symbol, pointer.path);
         line = { start: found, end: found };
       }
-      console.log(buildPermalink({ slug, sha, path: pointer.path, line }));
+      const url = buildPermalink({ slug, sha, path: pointer.path, line });
+      // 기본은 마크다운 링크 — PR 본문에 그대로 붙여 쓰는 형태다. 날 URL 이 필요하면 --url.
+      console.log(urlOnly ? url : `[${formatPointerLabel(pointer.path, line)}](${url})`);
     } catch (error) {
       failed = true;
       console.error(`${raw} → ${error instanceof Error ? error.message : String(error)}`);

@@ -84,16 +84,17 @@ gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제
 - 본문(한국어): 전체 열 줄 안팎, 아래 세 부분만.
 
   1. **무엇을·왜** — 1~2줄.
-  2. **리뷰 포인트** — 리뷰어가 실제로 읽어야 할 1~3곳. 항목마다 **`###` 제목 → 설명 →
-     (코드 스니펫) → permalink** 순으로 쓴다. 스니펫은 선택이다.
+  2. **변경 사항** — **파일별 나열이 아니다.** 리뷰어가 실제로 읽어야 할 1~3곳만 고른다:
+     위험한 변경 · 판단이 갈린 곳 · 확신 없는 곳. 항목마다 **`###` 제목 → 설명 →
+     (코드 스니펫) → 링크** 순으로 쓰고, 스니펫은 선택이다.
 
      ````markdown
-     ## 리뷰 포인트
+     ## 변경 사항
 
      ### 스레드를 닫는 주체를 사용자로 되돌림
      gh 가 오너 토큰을 쓰므로 에이전트가 닫든 오너가 닫든 밖에서는 구분되지 않는다.
      나누는 방법이 "안 하기로 정해 두는 것"뿐이라 resolve 를 사용자 행위로 돌렸다.
-     https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L25
+     [commands/resolve-reviews.md:25-32](https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L25-L32)
 
      ### 리액션 대상이 스레드가 아니라 첫 코멘트
      여기가 틀리면 👀 가 통째로 실패해서, 1단계 GraphQL 에 comments.id 를 추가했다.
@@ -102,23 +103,25 @@ gh pr create --base main --head <브랜치> --title "<Conventional 한국어 제
      addReaction(input:{subjectId:$commentId, content:EYES}){ reaction{ content } }
      ```
 
-     https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L146
+     [commands/resolve-reviews.md:146-160](https://github.com/<owner>/<repo>/blob/<sha>/commands/resolve-reviews.md#L146-L160)
      ````
 
      - **제목**: 그 자리에서 무엇이 바뀌었는지 한 줄. 목록만 훑어도 변경의 지형이 잡혀야 한다.
      - **설명**: 무엇이 걸리는지(위험한 이유 · 갈린 판단 · 확신 없는 부분) 한두 줄.
      - **코드 스니펫**(선택): 설명과 링크 사이에 짧은 코드 블록을 넣는다. **항상은 아니다** —
-       permalink 만으로 안 되는 때에만 쓴다: 떨어져 있는 줄을 나란히 보여야 할 때, before /
-       after 를 대비시킬 때, 본문에서 대안 코드를 제안할 때. 10줄 안쪽으로 자르고, 그냥
-       읽으라고 붙이는 덤프는 만들지 않는다.
-     - **permalink**: 코드를 직접 봐야 이해되는 건에만 붙인다. GitHub 이 본문에 코드 조각을
-       펼쳐 줘서 링크를 누르지 않고도 읽힌다. 설명으로 충분하면 생략한다.
+       링크만으로 안 되는 때에만 쓴다: 떨어져 있는 줄을 나란히 보여야 할 때, before / after 를
+       대비시킬 때, 본문에서 대안 코드를 제안할 때. 10줄 안쪽으로 자르고, 그냥 읽으라고 붙이는
+       덤프는 만들지 않는다.
+     - **링크**: `[경로:줄](permalink)` 형태로, 보이는 것은 경로와 줄뿐이고 URL 은 뒤에 숨긴다.
+       날 URL 을 그대로 두면 GitHub 이 코드 조각을 펼쳐 주지만 본문이 URL 로 뒤덮여 제목과
+       설명이 묻힌다 — 코드를 꼭 보여야 하면 링크가 아니라 위의 스니펫으로 해결한다.
 
-     **포인터를 앞세우지 않는다.** `경로:심볼` 이 먼저 오면 읽는 사람 눈에는 경로부터 들어와
-     정작 무엇이 바뀌었는지가 묻힌다. 제목이 먼저고 링크는 맨 아래다.
+     **포인터를 앞세우지 않는다.** 경로가 먼저 오면 읽는 사람 눈에는 경로부터 들어와 정작
+     무엇이 바뀌었는지가 묻힌다. 제목이 먼저고 링크는 맨 아래다.
 
      링크는 손으로 조립하지 말고 스크립트에 포인터를 넘긴다 — 인자는 `경로:심볼`,
-     `경로:42`, `경로:42-58` 셋 다 받고, 포인터마다 URL 을 한 줄씩 출력한다.
+     `경로:42`, `경로:42-58` 셋 다 받고, 포인터마다 `[경로:줄](permalink)` 를 한 줄씩 출력한다
+     (`--url` 이면 날 URL).
 
      ```bash
      bun "${CLAUDE_PLUGIN_ROOT:-.}/scripts/permalink.ts" \
